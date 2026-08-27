@@ -7,6 +7,8 @@ import {
   getPendingDocuments,
   updateDocumentStatus,
   bulkUpdateDocumentStatus,
+  getDocumentById,
+  getAllDocuments,
 } from '../controllers/documentController.js';
 import { protect, isAdmin } from '../middleware/authMiddleware.js';
 import upload from '../config/multer.js';
@@ -19,7 +21,9 @@ router.post('/:id/reparse', protect, reparseDocument);
 
 router.get('/admin/stats', protect, isAdmin, getAdminStats);
 router.get('/admin/pending', protect, isAdmin, getPendingDocuments);
+router.get('/admin/documents', protect, isAdmin, getAllDocuments);
 router.patch('/admin/:id/status', protect, isAdmin, updateDocumentStatus);
 router.patch('/admin/bulk-status', protect, isAdmin, bulkUpdateDocumentStatus);
+router.get('/admin/:id', protect, isAdmin, getDocumentById);
 
 export default router;

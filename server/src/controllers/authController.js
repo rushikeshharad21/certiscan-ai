@@ -194,3 +194,33 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: error.message })
   }
 }
+
+export const getAllStudents = async (req, res) => {
+  try {
+    const students = await User.find({ role: 'student' })
+      .select('name email collegeName phone authProvider createdAt')
+      .lean()
+
+    const Document = (await import('../models/Document.js')).default
+
+    const studentsWithStats = await Promise.all(
+      students.map(async (student) => {
+        const totalDocuments = await Document.countDocuments({ student: student._id })
+        const verifiedDocuments = await Document.countDocuments({
+          student: student._id,
+          status: 'verified',
+        })
+
+        return {
+          ...student,
+          totalDocuments,
+          verifiedDocuments,
+        }
+      })
+    )
+
+    res.status(200).json(studentsWithStats)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}

@@ -141,7 +141,7 @@ const getPendingDocuments = async (req, res) => {
 
 const updateDocumentStatus = async (req, res) => {
   try {
-    const { status, rejectionReason } = req.body;
+    const { status, rejectionReason, parsedData } = req.body;
 
     if (!['verified', 'rejected'].includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
@@ -151,6 +151,10 @@ const updateDocumentStatus = async (req, res) => {
 
     if (!document) {
       return res.status(404).json({ message: 'Document not found' });
+    }
+
+    if (parsedData) {
+      document.parsedData = parsedData;
     }
 
     document.status = status;
@@ -194,4 +198,33 @@ const bulkUpdateDocumentStatus = async (req, res) => {
   }
 };
 
-export { uploadDocument, getMyDocuments, reparseDocument, getAdminStats, getPendingDocuments, updateDocumentStatus, bulkUpdateDocumentStatus };
+const getDocumentById = async (req, res) => {
+  try {
+    const document = await Document.findById(req.params.id).populate(
+      'student',
+      'name email collegeName phone'
+    );
+
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
+
+    res.status(200).json(document);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch document', error: error.message });
+  }
+};
+
+const getAllDocuments = async (req, res) => {
+  try {
+    const documents = await Document.find()
+      .populate('student', 'name email collegeName phone')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(documents);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch documents', error: error.message });
+  }
+};
+
+export { uploadDocument, getMyDocuments, reparseDocument, getAdminStats, getPendingDocuments, updateDocumentStatus, bulkUpdateDocumentStatus, getDocumentById, getAllDocuments };

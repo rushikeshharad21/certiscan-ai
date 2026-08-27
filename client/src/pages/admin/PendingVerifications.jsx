@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FileText, Award, Users, IdCard, Loader2, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import DocumentReviewModal from "../../pages/admin/DocumentReviewModal.jsx"
 
 const typeConfig = {
   marksheet: { label: 'Marksheet', icon: FileText, color: 'text-violet-600', bg: 'bg-violet-100' },
@@ -21,6 +22,7 @@ const PendingVerifications = () => {
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
   const [actionLoading, setActionLoading] = useState(false);
+  const [reviewDocId, setReviewDocId] = useState(null);
 
   const fetchDocuments = async () => {
     try {
@@ -78,6 +80,11 @@ const PendingVerifications = () => {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const handleModalActionComplete = (docId) => {
+    setDocuments((prev) => prev.filter((doc) => doc._id !== docId));
+    setSelectedIds((prev) => prev.filter((item) => item !== docId));
   };
 
   if (loading) {
@@ -145,13 +152,18 @@ const PendingVerifications = () => {
               return (
                 <div
                   key={doc._id}
-                  className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm"
+                  className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => setReviewDocId(doc._id)}
                 >
                   <div className="flex items-start gap-3">
                     <input
                       type="checkbox"
                       checked={selectedIds.includes(doc._id)}
-                      onChange={() => toggleSelect(doc._id)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        toggleSelect(doc._id);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
                       className="w-4 h-4 mt-1 rounded border-slate-300 shrink-0"
                     />
 
@@ -183,6 +195,7 @@ const PendingVerifications = () => {
                           href={doc.fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
                           className="text-xs font-medium text-slate-500 hover:text-slate-900 underline"
                         >
                           View Document
@@ -191,7 +204,10 @@ const PendingVerifications = () => {
 
                       <div className="flex items-center gap-2 mt-3">
                         <button
-                          onClick={() => handleSingleAction(doc._id, 'verified')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSingleAction(doc._id, 'verified');
+                          }}
                           disabled={actionLoading}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 active:scale-[0.98] transition-all disabled:opacity-60"
                         >
@@ -199,7 +215,10 @@ const PendingVerifications = () => {
                           Verify
                         </button>
                         <button
-                          onClick={() => handleSingleAction(doc._id, 'rejected')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSingleAction(doc._id, 'rejected');
+                          }}
                           disabled={actionLoading}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-xs font-medium hover:bg-red-100 active:scale-[0.98] transition-all disabled:opacity-60"
                         >
@@ -214,6 +233,14 @@ const PendingVerifications = () => {
             })}
           </div>
         </>
+      )}
+
+      {reviewDocId && (
+        <DocumentReviewModal
+          documentId={reviewDocId}
+          onClose={() => setReviewDocId(null)}
+          onActionComplete={handleModalActionComplete}
+        />
       )}
     </div>
   );
