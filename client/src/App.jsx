@@ -16,6 +16,7 @@ const AdminDashboard = lazy(() => import('./pages/admin/Dashboard.jsx'))
 const PendingVerifications = lazy(() => import('./pages/admin/PendingVerifications.jsx'))
 const AllDocuments = lazy(() => import('./pages/admin/AllDocuments.jsx'))
 const Students = lazy(() => import('./pages/admin/Students.jsx'))
+const Reports = lazy(() => import("./pages/admin/Reports"))
 function PageLoader() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -62,6 +63,7 @@ function App() {
            <Route path="pending" element={<PendingVerifications />} />
            <Route path="documents" element={<AllDocuments />} />
            <Route path="students" element={<Students />} />
+           <Route path="reports" element={<Reports />} />
         </Route>
 
         <Route path="*" element={<Navigate to={getHomeRoute(user)} />} />

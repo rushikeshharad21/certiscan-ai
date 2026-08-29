@@ -127,6 +127,43 @@ const getAdminStats = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch stats', error: error.message });
   }
 };
+const getReportsData = async (req, res) => {
+  try {
+    const statusBreakdown = await Document.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+
+    const typeBreakdown = await Document.aggregate([
+      { $group: { _id: '$documentType', count: { $sum: 1 } } }
+    ]);
+
+    const riskBreakdown = await Document.aggregate([
+      { $match: { tamperingRiskLevel: { $ne: null } } },
+      { $group: { _id: '$tamperingRiskLevel', count: { $sum: 1 } } }
+    ]);
+
+    const uploadsOverTime = await Document.aggregate([
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    res.json({
+      statusBreakdown,
+      typeBreakdown,
+      riskBreakdown,
+      uploadsOverTime
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 const getPendingDocuments = async (req, res) => {
   try {
     const documents = await Document.find({ status: 'pending' })
@@ -227,4 +264,4 @@ const getAllDocuments = async (req, res) => {
   }
 };
 
-export { uploadDocument, getMyDocuments, reparseDocument, getAdminStats, getPendingDocuments, updateDocumentStatus, bulkUpdateDocumentStatus, getDocumentById, getAllDocuments };
+export { uploadDocument, getMyDocuments, reparseDocument, getAdminStats, getPendingDocuments, updateDocumentStatus, bulkUpdateDocumentStatus, getDocumentById, getAllDocuments,getReportsData };
